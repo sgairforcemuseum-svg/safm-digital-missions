@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>SKY SHIELD</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#02070d;color:#eafaff;font-family:Arial,Helvetica,sans-serif;touch-action:none}
+#app{position:relative;width:100%;height:100%;overflow:hidden;background:
+radial-gradient(circle at 50% 45%,rgba(0,196,255,.12),transparent 40%),linear-gradient(#071824,#02060a)}
+canvas{position:absolute;inset:0;width:100%;height:100%}
+#hud{position:absolute;inset:0;pointer-events:none}
+.top{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;gap:6px}
+.panel{background:rgba(2,12,20,.86);border:1px solid rgba(75,211,255,.35);border-radius:9px;padding:6px 9px;min-width:72px}
+.label{font-size:8px;letter-spacing:1.5px;color:#74cde7}.value{font-size:18px;font-weight:900}
+#status{position:absolute;top:72px;left:50%;transform:translateX(-50%);font-size:9px;letter-spacing:2px;color:#6edfff;white-space:nowrap;text-align:center}
+#radarLabel{position:absolute;left:12px;bottom:91px;font-size:8px;letter-spacing:1.4px;color:#76c9df}
+#controls{position:absolute;bottom:9px;left:9px;right:9px;display:flex;gap:8px;pointer-events:auto}
+button{border:0;border-radius:11px;font-weight:900;letter-spacing:1.3px;font-size:14px;padding:15px 14px}
+#intercept{flex:1;background:#68ddff;color:#03121b;box-shadow:0 0 22px rgba(74,216,255,.22)}
+#clear{width:88px;background:#173342;color:#c4f2ff;border:1px solid #396577}
+.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(1,7,12,.84);backdrop-filter:blur(6px);pointer-events:auto}
+.card{width:min(440px,100%);border:1px solid rgba(92,218,255,.42);border-radius:18px;background:linear-gradient(145deg,rgba(8,30,44,.97),rgba(2,10,17,.98));padding:22px;box-shadow:0 24px 70px rgba(0,0,0,.55)}
+.kicker{font-size:9px;letter-spacing:3px;color:#6ddfff;margin-bottom:6px}
+h1{font-size:32px;letter-spacing:2px;margin:0 0 7px}
+p{font-size:13px;color:#a9c9d4;line-height:1.45}
+.steps{display:flex;gap:8px;margin:16px 0}.step{flex:1;text-align:center;padding:10px 5px;background:rgba(67,202,240,.06);border:1px solid rgba(80,210,240,.16);border-radius:10px}
+.icon{height:52px;display:flex;align-items:center;justify-content:center;font-size:30px}
+.step b{display:block;font-size:10px;letter-spacing:.8px;margin-top:4px}.step small{font-size:9px;color:#9bbbc6}
+.bigbtn{width:100%;background:#67ddff;color:#03121b;margin-top:8px;padding:16px}
+.hidden{display:none!important}
+#tutorial{z-index:20}
+.tutBox{position:absolute;left:50%;transform:translateX(-50%);width:min(340px,86%);padding:15px;border:1px solid #4fdcff;border-radius:14px;background:rgba(3,15,24,.95);box-shadow:0 0 35px rgba(40,200,255,.18);text-align:center}
+#tut1{top:18%}#tut2{bottom:18%}#tut3{top:18%}
+.tutBox b{font-size:15px}.tutBox div{font-size:11px;color:#b8dce7;margin-top:6px;line-height:1.4}
+.tutArrow{font-size:28px;margin-top:7px;color:#70e4ff}
+#targetHint{position:absolute;display:none;width:82px;height:82px;border:2px solid #ffbd58;border-radius:50%;transform:translate(-50%,-50%);z-index:8;pointer-events:none;animation:pulse .8s infinite}
+#targetHint:before,#targetHint:after{content:"";position:absolute;background:#ffbd58}.targetText{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:8px;letter-spacing:1px;white-space:nowrap}
+#targetHint:before{width:104px;height:1px;left:-13px;top:39px}#targetHint:after{height:104px;width:1px;left:39px;top:-13px}
+#lock{position:absolute;display:none;width:78px;height:78px;border:2px solid #ffbd58;border-radius:50%;transform:translate(-50%,-50%);z-index:9;pointer-events:none}
+#lock:before,#lock:after{content:"";position:absolute;background:#ffbd58}.lockText{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:8px;letter-spacing:1px}.lockH{width:96px;height:1px;left:-11px;top:37px;position:absolute;background:#ffbd58}.lockV{height:96px;width:1px;left:37px;top:-11px;position:absolute;background:#ffbd58}
+#message{position:absolute;top:49%;left:50%;transform:translate(-50%,-50%);font-size:17px;font-weight:900;letter-spacing:2px;text-align:center;opacity:0;text-shadow:0 0 18px #55dcff;z-index:12}
+#warning{position:absolute;top:104px;left:50%;transform:translateX(-50%);font-size:10px;letter-spacing:2px;color:#ffbc57;opacity:0}
+.flash{animation:flash .18s linear 3}.pulse{animation:pulse .8s infinite}
+@keyframes pulse{50%{transform:translate(-50%,-50%) scale(1.12);opacity:.65}}@keyframes flash{50%{filter:brightness(2.5)}}
+#soundNote{font-size:9px;color:#789aa7;margin-top:8px;text-align:center}
+
+/* MOBILE / PHONE OPTIMISATION */
+@media (max-width:600px){
+  .top{top:max(8px,env(safe-area-inset-top));left:8px;right:8px;gap:5px}
+  .panel{min-width:0;flex:1;padding:5px 6px;text-align:center}
+  .label{font-size:7px;letter-spacing:1px}.value{font-size:16px}
+  #status{top:58px;font-size:7px;letter-spacing:1.2px;max-width:92%;overflow:hidden;text-overflow:ellipsis}
+  #warning{top:84px;font-size:8px;letter-spacing:1.5px}
+  #radarLabel{left:9px;bottom:78px;font-size:7px;letter-spacing:1px}
+  #controls{bottom:max(8px,env(safe-area-inset-bottom));left:8px;right:8px;gap:7px}
+  button{font-size:13px;padding:14px 10px;min-height:50px}
+  #clear{width:82px}
+  .overlay{padding:12px}
+  .card{width:min(420px,100%);padding:18px;border-radius:15px;max-height:calc(100vh - 24px);overflow:auto}
+  .kicker{font-size:8px;letter-spacing:2px}
+  h1{font-size:28px}
+  p{font-size:12px}
+  .steps{gap:5px;margin:12px 0}
+  .step{padding:7px 4px}
+  .icon{height:38px;font-size:23px}
+  .step b{font-size:9px}.step small{font-size:8px}
+  .bigbtn{padding:14px;min-height:50px}
+  #soundNote{font-size:8px}
+  .tutBox{width:min(310px,82%);padding:12px}
+  .tutBox b{font-size:13px}.tutBox div{font-size:10px}
+  #tut1,#tut3{top:16%}#tut2{bottom:17%}
+  #targetHint{width:70px;height:70px}
+  #lock{width:68px;height:68px}
+  #message{font-size:15px;letter-spacing:1.5px;max-width:88%}
+}
+@media (max-width:380px){
+  .top{top:6px;left:6px;right:6px}
+  .panel{padding:4px 4px}.label{font-size:6px}.value{font-size:14px}
+  #status{top:52px;font-size:6.5px}
+  #radarLabel{bottom:74px;font-size:6.5px}
+  .card{padding:15px}
+  h1{font-size:25px}
+  p{font-size:11px}
+  .steps{margin:9px 0}.icon{height:32px;font-size:20px}
+  .step b{font-size:8px}.step small{font-size:7px}
+}
+@media (max-height:700px) and (max-width:600px){
+  .card{padding:14px}
+  .steps{margin:8px 0}
+  .icon{height:30px}
+  .bigbtn{padding:12px}
+}
+</style>
+</head>
+<body>
+<div id="app"><canvas id="c"></canvas>
+<div id="hud">
+<div class="top">
+<div class="panel"><div class="label">SCORE</div><div id="score" class="value">0000</div></div>
+<div class="panel"><div class="label">THREATS</div><div id="threats" class="value">06</div></div>
+<div class="panel"><div class="label">TIME</div><div id="time" class="value">60</div></div>
+</div>
+<div id="status">AIR DEFENCE NETWORK // STANDBY</div>
+<div id="warning">⚠ AIRSPACE ALERT</div>
+<div id="radarLabel">SURVEILLANCE GRID // TAP CONTACTS TO DESIGNATE</div>
+<div id="targetHint"><span class="targetText">TAP CONTACT</span></div>
+<div id="lock"><span class="lockText">TARGET LOCK</span><span class="lockH"></span><span class="lockV"></span></div>
+<div id="message"></div>
+<div id="controls"><button id="clear">CLEAR</button><button id="intercept">INTERCEPT</button></div>
+</div>
+
+<div id="intro" class="overlay"><div class="card">
+<div class="kicker">SINGAPORE AIR FORCE MUSEUM · DIGITAL MISSION</div><h1>SKY SHIELD</h1>
+<p>You are monitoring an airspace sector. Identify incoming contacts, designate them and intercept them before they enter the defended zone.</p>
+<div class="steps">
+<div class="step"><div class="icon">📡</div><b>1 · DETECT</b><small>Watch the radar</small></div>
+<div class="step"><div class="icon">🎯</div><b>2 · DESIGNATE</b><small>Tap a contact</small></div>
+<div class="step"><div class="icon">🚀</div><b>3 · INTERCEPT</b><small>Tap the button</small></div>
+</div>
+<button id="start" class="bigbtn">START TRAINING</button>
+<div id="soundNote">🔊 Sound is part of the experience — turn your phone volume up.</div>
+</div></div>
+
+<div id="tutorial" class="hidden">
+<div id="tut1" class="tutBox"><b>STEP 1 — DETECT</b><div>Incoming contacts are shown on the radar. Look for the aircraft symbols moving toward the centre.</div><div class="tutArrow">↓</div></div>
+<div id="tut2" class="tutBox hidden"><b>STEP 2 — DESIGNATE</b><div>Tap the highlighted aircraft to designate it.</div><div class="tutArrow">☝</div></div>
+<div id="tut3" class="tutBox hidden"><b>STEP 3 — INTERCEPT</b><div>Once locked, press INTERCEPT to complete the engagement.</div><div class="tutArrow">↓</div></div>
+</div>
+
+<div id="end" class="overlay hidden"><div class="card">
+<div class="kicker">MISSION REPORT</div><h1 id="endTitle">MISSION COMPLETE</h1><p id="endText"></p>
+<div class="steps"><div class="step"><div class="icon">🏆</div><b>SCORE</b><small id="finalScore">0000</small></div><div class="step"><div class="icon">🎯</div><b>INTERCEPTED</b><small id="finalIntercepts">0</small></div></div>
+<button id="restart" class="bigbtn">REPLAY MISSION</button>
+</div></div>
+</div>
+
+<script>
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+let W,H,dpr=1,running=false,selected=null,score=0,intercepts=0,timeLeft=60;
+let contacts=[],particles=[],last=0,spawnClock=0,msgTimer=0,tutStep=0,audioCtx=null;
+function resize(){dpr=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;canvas.width=W*dpr;canvas.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0)}addEventListener('resize',resize);resize();
+function centre(){return{x:W/2,y:H*.53}}function R(){return Math.min(W,H)*.38}
+function tone(freq,dur=.1,type='sine',gain=.035,when=0,slide=0){
+ if(!audioCtx)return;
+ const now=audioCtx.currentTime+when,o=audioCtx.createOscillator(),g=audioCtx.createGain();
+ o.type=type;o.frequency.setValueAtTime(freq,now);
+ if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(25,freq+slide),now+dur);
+ g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(gain,now+.012);
+ g.gain.exponentialRampToValueAtTime(.0001,now+dur);
+ o.connect(g);g.connect(audioCtx.destination);o.start(now);o.stop(now+dur+.02)
+}
+function noise(dur=.15,gain=.03,when=0){
+ if(!audioCtx)return;
+ const n=audioCtx.createBufferSource(),b=audioCtx.createBuffer(1,audioCtx.sampleRate*dur,audioCtx.sampleRate);
+ const data=b.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*Math.pow(1-i/data.length,2);
+ n.buffer=b;const g=audioCtx.createGain(),now=audioCtx.currentTime+when;
+ g.gain.setValueAtTime(gain,now);g.gain.exponentialRampToValueAtTime(.0001,now+dur);
+ n.connect(g);g.connect(audioCtx.destination);n.start(now)
+}
+function alertSound(){
+ tone(520,.12,'square',.045);tone(390,.12,'square',.04, .13);
+ tone(520,.12,'square',.045,.34);tone(390,.12,'square',.04,.47);
+}
+function radarPing(){
+ tone(1100,.16,'sine',.018);tone(760,.24,'sine',.012,.05);
+}
+function lockSound(){
+ tone(700,.07,'square',.03);tone(980,.12,'square',.035,.08);
+ tone(1240,.10,'sine',.025,.20);
+}
+function launchSound(){
+ // rising "whoosh" followed by a sharp launch pulse
+ noise(.55,.022);
+ tone(85,.50,'sawtooth',.035,0,520);
+ tone(170,.18,'square',.045,.08,260);
+ tone(430,.12,'sawtooth',.028,.20,420);
+}
+function explosionSound(){
+ // layered arcade interception burst
+ noise(.38,.055);
+ tone(150,.28,'sawtooth',.055,0,-110);
+ tone(75,.42,'triangle',.05,.05,-45);
+ tone(310,.16,'square',.035,.02,-180);
+ tone(620,.08,'sine',.025,.06,-300);
+}
+function successSound(){
+ tone(520,.10,'sine',.035);tone(660,.10,'sine',.035,.10);
+ tone(820,.13,'sine',.04,.20);tone(1040,.28,'sine',.045,.32);
+}
+function makeContact(){let a=Math.random()*Math.PI*2,r=R()*(.72+Math.random()*.25),cc=centre();return{x:cc.x+Math.cos(a)*r,y:cc.y+Math.sin(a)*r,speed:12+Math.random()*15,type:Math.random()<.16?'DECOY':'HOSTILE',size:Math.max(7,Math.min(W,H)*.018),phase:Math.random()*6}}
+function reset(){score=0;intercepts=0;timeLeft=60;selected=null;contacts=[];particles=[];spawnClock=0;for(let i=0;i<6;i++)contacts.push(makeContact());updateUI()}
+function updateUI(){document.getElementById('score').textContent=String(score).padStart(4,'0');document.getElementById('threats').textContent=String(contacts.length).padStart(2,'0');document.getElementById('time').textContent=String(Math.max(0,Math.ceil(timeLeft))).padStart(2,'0')}
+function showMsg(t){let e=document.getElementById('message');e.textContent=t;e.style.opacity=1;clearTimeout(msgTimer);msgTimer=setTimeout(()=>e.style.opacity=0,700)}
+function explode(x,y,good){for(let i=0;i<25;i++){let a=Math.random()*Math.PI*2,s=35+Math.random()*130;particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:.45+Math.random()*.65,good})}explosionSound()}
+function startAudio(){try{audioCtx=new(window.AudioContext||window.webkitAudioContext)();audioCtx.resume()}catch(e){}}
+function begin(){startAudio();reset();running=true;document.getElementById('intro').classList.add('hidden');document.getElementById('end').classList.add('hidden');document.getElementById('tutorial').classList.remove('hidden');tutStep=1;document.getElementById('tut1').classList.remove('hidden');document.getElementById('tut2').classList.add('hidden');document.getElementById('tut3').classList.add('hidden');setTimeout(()=>{if(running&&tutStep===1){document.getElementById('tut1').classList.add('hidden');document.getElementById('tut2').classList.remove('hidden');tutStep=2}},2800);last=performance.now();requestAnimationFrame(loop)}
+document.getElementById('start').onclick=begin;document.getElementById('restart').onclick=begin;
+
+function designate(c){selected=c;let l=document.getElementById('lock');l.style.left=c.x+'px';l.style.top=c.y+'px';l.style.display='block';document.getElementById('targetHint').style.display='none';showMsg(c.type==='DECOY'?'CONTACT DESIGNATED':'HOSTILE DESIGNATED');lockSound();if(tutStep===2){document.getElementById('tut2').classList.add('hidden');document.getElementById('tut3').classList.remove('hidden');tutStep=3;setTimeout(()=>{document.getElementById('tut3').classList.add('hidden');document.getElementById('tutorial').classList.add('hidden')},3000)}}
+canvas.addEventListener('pointerdown',e=>{if(!running)return;let x=e.clientX,y=e.clientY,best=null,bd=Infinity;for(const c of contacts){let d=Math.hypot(c.x-x,c.y-y);if(d<c.size*3&&d<bd){best=c;bd=d}}if(best)designate(best)});
+function intercept(){if(!running)return;if(!selected){showMsg('DESIGNATE A CONTACT');tone(240,.12,'square',.04);return}launchSound();let i=contacts.indexOf(selected);if(i<0)return;let c=selected;setTimeout(()=>{explode(c.x,c.y,c.type!=='DECOY')},180);if(c.type==='DECOY'){score=Math.max(0,score-100);showMsg('DECOY — -100')}else{score+=250;intercepts++;showMsg('INTERCEPT CONFIRMED +250')}contacts.splice(i,1);selected=null;document.getElementById('lock').style.display='none';updateUI();if(!contacts.length)for(let i=0;i<3;i++)contacts.push(makeContact())}
+document.getElementById('intercept').onclick=intercept;
+document.getElementById('clear').onclick=()=>{selected=null;document.getElementById('lock').style.display='none';showMsg('DESIGNATION CLEARED');tone(420,.06,'square',.025)};
+function drawBG(t){ctx.clearRect(0,0,W,H);let cc=centre(),r=R();let g=ctx.createRadialGradient(cc.x,cc.y,0,cc.x,cc.y,r*1.8);g.addColorStop(0,'rgba(20,170,215,.10)');g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);ctx.save();ctx.translate(cc.x,cc.y);ctx.strokeStyle='rgba(82,210,240,.18)';ctx.lineWidth=1;for(let k=1;k<=4;k++){ctx.beginPath();ctx.arc(0,0,r*k/4,0,Math.PI*2);ctx.stroke()}ctx.beginPath();ctx.moveTo(-r,0);ctx.lineTo(r,0);ctx.moveTo(0,-r);ctx.lineTo(0,r);ctx.stroke();for(let a=0;a<Math.PI;a+=Math.PI/4){ctx.beginPath();ctx.moveTo(Math.cos(a)*r,Math.sin(a)*r);ctx.lineTo(-Math.cos(a)*r,-Math.sin(a)*r);ctx.stroke()}let a=(t*.00045)%(Math.PI*2);ctx.strokeStyle='rgba(90,225,255,.45)';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);ctx.stroke();ctx.restore();ctx.strokeStyle='rgba(90,225,255,.6)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(cc.x,cc.y,r*.28,0,Math.PI*2);ctx.stroke();ctx.fillStyle='rgba(90,225,255,.7)';ctx.font='bold 9px Arial';ctx.textAlign='center';ctx.fillText('DEFENDED ZONE',cc.x,cc.y+4)}
+function drawContact(c,t){let cc=centre(),dx=cc.x-c.x,dy=cc.y-c.y,d=Math.hypot(dx,dy)||1,a=Math.atan2(dy,dx);ctx.save();ctx.translate(c.x,c.y);ctx.rotate(a);ctx.shadowBlur=selected===c?22:9;ctx.shadowColor=selected===c?'#ffbd58':'#56dfff';ctx.fillStyle=selected===c?'#ffc05d':'#5edfff';ctx.beginPath();ctx.moveTo(c.size*1.6,0);ctx.lineTo(-c.size,-c.size*.65);ctx.lineTo(-c.size*.55,0);ctx.lineTo(-c.size,c.size*.65);ctx.closePath();ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='#06202b';ctx.beginPath();ctx.arc(0,0,c.size*.3,0,Math.PI*2);ctx.fill();ctx.restore();ctx.strokeStyle=selected===c?'rgba(255,190,90,.55)':'rgba(86,220,255,.2)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(c.x,c.y);ctx.lineTo(c.x-dx*.08,c.y-dy*.08);ctx.stroke()}
+function update(dt){timeLeft-=dt;spawnClock+=dt;if(timeLeft<=0){finish(true);return}let cc=centre(),r=R();for(let i=contacts.length-1;i>=0;i--){let c=contacts[i],dx=cc.x-c.x,dy=cc.y-c.y,d=Math.hypot(dx,dy)||1;c.x+=dx/d*c.speed*dt;c.y+=dy/d*c.speed*dt;c.phase+=dt;if(d<r*.26){explode(c.x,c.y,false);contacts.splice(i,1);score=Math.max(0,score-300);showMsg('DEFENCE BREACHED -300');document.getElementById('warning').style.opacity=1;setTimeout(()=>document.getElementById('warning').style.opacity=0,500);selected=null;document.getElementById('lock').style.display='none'}}if(spawnClock>4.5&&contacts.length<8){contacts.push(makeContact());spawnClock=0;alertSound();radarPing()}for(let i=particles.length-1;i>=0;i--){let p=particles[i];p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=.96;p.vy*=.96;p.life-=dt;if(p.life<=0)particles.splice(i,1)}updateUI()}
+function drawParticles(){for(const p of particles){ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.good?'#7ce7ff':'#ffb84d';ctx.beginPath();ctx.arc(p.x,p.y,2.3,0,Math.PI*2);ctx.fill()}ctx.globalAlpha=1}
+function loop(t){if(!running)return;let dt=Math.min(.04,(t-last)/1000);last=t;update(dt);drawBG(t);contacts.forEach(c=>drawContact(c,t));drawParticles();if(selected){let l=document.getElementById('lock');l.style.left=selected.x+'px';l.style.top=selected.y+'px'}if(tutStep===2&&!selected&&contacts[0]){let h=document.getElementById('targetHint');h.style.left=contacts[0].x+'px';h.style.top=contacts[0].y+'px';h.style.display='block'}requestAnimationFrame(loop)}
+function finish(success){running=false;if(success)successSound();document.getElementById('tutorial').classList.add('hidden');document.getElementById('end').classList.remove('hidden');document.getElementById('endTitle').textContent=success?'MISSION COMPLETE':'MISSION FAILED';document.getElementById('endText').textContent=success?'Airspace remained protected for the full 60 seconds.':'The defended zone was compromised.';document.getElementById('finalScore').textContent=String(score).padStart(4,'0');document.getElementById('finalIntercepts').textContent=intercepts}
+</script>
+</body>
+</html>

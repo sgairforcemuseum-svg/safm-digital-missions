@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RSAF HERITAGE</title>
+<style>
+:root{--bg:#03080c;--panel:#07151c;--card:#0a1a21;--line:#19434e;--cyan:#29e8ff;--amber:#ffb72e;--green:#55f2a5;--red:#ff5965;--muted:#78959e}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:#def8fc;font-family:Segoe UI,Arial,sans-serif}
+body{display:flex;justify-content:center;padding:14px}.game{width:min(900px,100%);background:#02070a;border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 0 40px #00151c}
+.top{padding:13px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}.brand{font-weight:900;letter-spacing:3px}.status{font-size:10px;letter-spacing:1.4px;color:var(--green);text-align:right}
+.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line)}.hud>div{background:#07131a;text-align:center;padding:9px}.label{font-size:9px;color:var(--muted);letter-spacing:1.6px}.value{font-size:20px;color:var(--cyan);font-weight:900;margin-top:2px}
+.liner{text-align:center;padding:9px;border-bottom:1px solid var(--line);background:#061117;color:#7f9da6;font-size:10px;letter-spacing:1.6px;text-transform:uppercase}
+.content{padding:15px}.timeline{display:flex;align-items:center;gap:0;margin:0 auto 15px;max-width:720px}.era{flex:1;text-align:center;position:relative}.era:not(:last-child):after{content:"";position:absolute;top:7px;left:50%;width:100%;height:1px;background:#163841;z-index:0}.dot{position:relative;z-index:1;width:15px;height:15px;margin:auto;border:1px solid #245965;background:#06141a;border-radius:50%}.era.active .dot{background:var(--amber);border-color:var(--amber);box-shadow:0 0 10px #7d591b}.era.done .dot{background:var(--green);border-color:var(--green)}.year{font-size:9px;color:#657f88;margin-top:5px;letter-spacing:1px}.era.active .year{color:var(--amber)}
+.question{max-width:760px;margin:auto;border:1px solid var(--line);background:linear-gradient(145deg,#081a21,#061117);padding:22px 20px;text-align:center}.kicker{font-size:10px;letter-spacing:2px;color:var(--amber)}h1{font-size:clamp(20px,4vw,29px);line-height:1.25;margin:9px auto 7px;max-width:700px}.desc{font-size:12px;color:#8da9b2}.choices{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-width:760px;margin:12px auto 0}.choice{min-height:68px;background:var(--card);border:1px solid #215460;color:#ddf8fb;border-radius:7px;padding:10px 14px;font-size:14px;font-weight:800;letter-spacing:.5px;cursor:pointer;text-align:left}.choice:hover{border-color:#34808c}.choice.correct{border-color:var(--green);background:#09231d;color:var(--green)}.choice.wrong{border-color:var(--red);background:#261116;color:#ff9da5}.choice:disabled{cursor:default}.choice .letter{color:#6d8c95;margin-right:10px}.feedback{max-width:760px;margin:10px auto 0;min-height:52px;text-align:center;border:1px solid var(--line);background:#061118;padding:11px;display:none}.feedback.show{display:block}.feedback.good{border-color:#286b56}.feedback.bad{border-color:#71313a}.feedback strong{display:block;font-size:13px;letter-spacing:1px}.feedback span{font-size:11px;color:#8da9b2}
+.progress{height:5px;background:#0a2027;max-width:760px;margin:12px auto 0}.progress i{display:block;height:100%;width:0;background:var(--amber);transition:width .25s ease}
+.overlay{position:absolute;inset:0;background:rgba(2,8,12,.97);display:flex;align-items:center;justify-content:center;padding:22px;z-index:10}.box{width:min(650px,100%);border:1px solid #20515d;background:#07141b;padding:28px;text-align:center}.box h2{font-size:38px;letter-spacing:5px;color:var(--cyan);margin:0 0 8px}.box p{color:#9bb8c0;line-height:1.6}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:18px 0}.step{border:1px solid var(--line);padding:11px}.step b{display:block;color:var(--cyan);font-size:10px;letter-spacing:1.5px;margin-bottom:4px}.start{width:100%;min-height:52px;background:#08252d;border:1px solid var(--cyan);color:#e5fcff;border-radius:7px;font-weight:800;letter-spacing:2px;cursor:pointer}.report{text-align:left;line-height:1.9}.good{color:var(--green)}
+@media(max-width:620px){.hud{grid-template-columns:repeat(2,1fr)}.choices{grid-template-columns:1fr}.question{padding:18px 13px}.steps{grid-template-columns:1fr}.box h2{font-size:30px}.timeline .era:nth-child(even) .year{display:none}}
+</style>
+</head>
+<body>
+<div class="game">
+<div class="top"><div class="brand">RSAF // HERITAGE</div><div style="display:flex;align-items:center;gap:10px"><button id="musicBtn" aria-label="Toggle background music" style="background:#06141a;border:1px solid #245965;color:#9fdbe3;border-radius:6px;padding:6px 9px;font-size:10px;letter-spacing:1px;cursor:pointer">♫ MUSIC ON</button><div class="status" id="status">HERITAGE ARCHIVE // STANDBY</div></div></div>
+<div class="hud">
+<div><div class="label">SCORE</div><div class="value" id="score">00000</div></div>
+<div><div class="label">QUESTION</div><div class="value" id="qnum">1 / 10</div></div>
+<div><div class="label">STREAK</div><div class="value" id="streak">0</div></div>
+<div><div class="label">XP EARNED</div><div class="value" id="xp">00000</div></div>
+</div>
+<div class="liner">RSAF Heritage Challenge · Discover · Remember · Continue the Story</div>
+<div class="content">
+<div class="timeline" id="timeline">
+<div class="era active"><div class="dot"></div><div class="year">1968</div></div>
+<div class="era"><div class="dot"></div><div class="year">1969</div></div>
+<div class="era"><div class="dot"></div><div class="year">1970</div></div>
+<div class="era"><div class="dot"></div><div class="year">1975</div></div>
+<div class="era"><div class="dot"></div><div class="year">1979</div></div>
+<div class="era"><div class="dot"></div><div class="year">1987+</div></div>
+</div>
+<div class="question">
+<div class="kicker" id="era">1968 // THE BEGINNING</div>
+<h1 id="question">Loading heritage record...</h1>
+<div class="desc" id="hint">Select the correct answer to continue.</div>
+</div>
+<div class="choices" id="choices"></div>
+<div class="feedback" id="feedback"><strong id="feedbackTitle"></strong><span id="feedbackText"></span><div id="continueWrap"></div></div>
+<div class="progress"><i id="progress"></i></div>
+</div>
+<div class="overlay" id="overlay">
+<div class="box" id="box">
+<div class="kicker">SINGAPORE AIR FORCE MUSEUM · DIGITAL MISSION</div>
+<h2>RSAF HERITAGE</h2>
+<p>Ready to become a Young Aviator? Explore fun facts about Singapore's Air Force, discover its aircraft and learn how the RSAF has grown through the years. Play at your own pace — there's no timer!</p>
+<div class="steps"><div class="step"><b>01 // EXPLORE</b>Read each question together.</div><div class="step"><b>02 // DISCOVER</b>Choose an answer.</div><div class="step"><b>03 // LEARN</b>Enjoy a fun fact before continuing.</div></div>
+<p style="font-size:11px;margin:12px 0;color:#78959e">Want to explore more? Visit the <a href="https://www.mindef.gov.sg/news-and-events/latest-releases/17jan18_fs/" target="_blank" rel="noopener noreferrer" style="color:#29e8ff">official RSAF history resource</a>.</p><button class="start" id="start">START QUIZ</button>
+</div>
+</div>
+</div>
+<script>
+(()=>{
+const questions=[
+{era:'MEET THE RSAF',year:'1968',q:'What does RSAF stand for?',a:['Republic of Singapore Air Force','Royal Singapore Air Fleet','Republic of Singapore Army Force','Regional Singapore Air Force'],correct:0,fact:'RSAF stands for the Republic of Singapore Air Force. Its mission is to defend Singapore and keep our skies safe.'},
+{era:'1968 // THE BEGINNING',year:'1968',q:"In which year did Singapore's Air Force first begin?",a:['1960','1965','1968','1980'],correct:2,fact:'Singapore began building its own air force in 1968. It was first known as the Singapore Air Defence Command, or SADC.'},
+{era:'1968 // A NEW NAME',year:'1968',q:"What was Singapore's Air Force called before it became the RSAF?",a:['Singapore Flying Club','Singapore Air Defence Command','Singapore Air Transport','Singapore Sky Command'],correct:1,fact:'Before becoming the RSAF in 1975, it was known as the Singapore Air Defence Command (SADC).'},
+{era:'1968 // FIRST TRAINING AIRCRAFT',year:'1968',q:"What was the name of one of Singapore's first training aircraft?",a:['Cessna 172K','F-15SG','Apache','Chinook'],correct:0,fact:'Singapore started with Cessna 172K aircraft to help train its first pilots. Two aircraft were initially leased from the Singapore Flying Club.'},
+{era:'1969 // FIRST HELICOPTERS',year:'1969',q:"Which helicopter was among the first used by Singapore's Air Force?",a:['Super Puma','Alouette III','Chinook','Apache'],correct:1,fact:'The Alouette III helicopters arrived in 1969 and helped form Singapore’s first helicopter squadron, 120 Squadron.'},
+{era:'1970 // FIRST FIGHTER',year:'1970',q:"Can you name Singapore's first fighter aircraft?",a:['F-16 Fighting Falcon','F-15SG','Hawker Hunter','F-5 Tiger II'],correct:2,fact:'The Hawker Hunter became the SADC’s first fighter aircraft in 1970, operated by 140 Squadron.'},
+{era:'1975 // RSAF IS BORN',year:'1975',q:'In which year did the Singapore Air Defence Command become the RSAF?',a:['1968','1970','1975','1990'],correct:2,fact:'The Republic of Singapore Air Force was formally inaugurated on 1 April 1975.'},
+{era:'1979 // SUPERSONIC FLIGHT',year:'1979',q:'Which fighter jet helped the RSAF enter the world of supersonic flying?',a:['Cessna 172K','F-5 Tiger II','Alouette III','Super Puma'],correct:1,fact:'The F-5 arrived in 1979 and marked the RSAF’s entry into supersonic flight. Supersonic means faster than the speed of sound!'},
+{era:'1987 // RADAR IN THE SKY',year:'1987',q:'Which aircraft has a large round radar dome above it to help spot other aircraft?',a:['E-2C Hawkeye','Cessna 172K','Hawker Hunter','A-4 Skyhawk'],correct:0,fact:'The E-2C Hawkeye uses its special radar to help detect and monitor aircraft from the sky. It gave the RSAF its first airborne early warning capability in 1987.'},
+{era:'1973–2015 // THE BLACK KNIGHTS',year:'1987+',q:'What was the name of the RSAF aerobatics team famous for its amazing flying displays?',a:['The Red Lions','The Black Knights','The Blue Eagles','The Sky Rangers'],correct:1,fact:'The RSAF Black Knights aerobatics team performed coordinated flying displays from 1973 to 2015, showcasing the skill of RSAF pilots.'}
+];
+const $=id=>document.getElementById(id);
+let audio=null,master=null,musicGain=null,musicTimer=null,musicOn=true,index=0,score=0,streak=0,maxStreak=0,answered=false;
+
+function audioStart(){if(audio){audio.resume();return}audio=new(window.AudioContext||window.webkitAudioContext)();master=audio.createGain();master.gain.value=.13;master.connect(audio.destination)}
+function startMusic(){
+ if(!audio||!musicOn||musicTimer)return;
+
+ // Uplifting, cinematic aviation-inspired theme: warm chords, a moving bass
+ // line and a brighter melody. Generated locally with Web Audio; no downloads.
+ musicGain=audio.createGain();
+ musicGain.gain.value=.42;
+ musicGain.connect(master);
+
+ const masterTone=audio.createBiquadFilter();
+ masterTone.type='lowpass';
+ masterTone.frequency.value=5200;
+ musicGain.disconnect();
+ musicGain.connect(masterTone).connect(master);
+
+ const bpm=104, beat=60/bpm, stepMs=beat*500;
+ const progression=[
+   {root:110, chord:[220,261.63,329.63], melody:[392,440,523.25,440,392,329.63,392,440]},
+   {root:87.31,chord:[174.61,220,261.63],melody:[349.23,392,440,523.25,440,392,349.23,392]},
+   {root:98,chord:[196,246.94,293.66],melody:[392,493.88,587.33,493.88,440,392,440,493.88]},
+   {root:82.41,chord:[164.81,196,246.94],melody:[329.63,392,493.88,440,392,329.63,293.66,329.63]}
+ ];
+ let step=0;
+ const makeVoice=(freq,when,duration,volume,wave='sine',detune=0)=>{
+   const osc=audio.createOscillator(), amp=audio.createGain();
+   osc.type=wave;
+   osc.frequency.setValueAtTime(freq,when);
+   osc.detune.setValueAtTime(detune,when);
+   amp.gain.setValueAtTime(.0001,when);
+   amp.gain.exponentialRampToValueAtTime(Math.max(.0002,volume),when+.035);
+   amp.gain.setTargetAtTime(.0001,when+duration*.65,duration*.12);
+   osc.connect(amp).connect(musicGain);
+   osc.start(when);
+   osc.stop(when+duration+.12);
+ };
+ const playStep=()=>{
+   if(!audio||!musicOn)return;
+   const now=audio.currentTime;
+   const bar=progression[Math.floor(step/8)%progression.length];
+   const beatInBar=step%8;
+
+   // Gentle low bass pulse on every other beat.
+   if(beatInBar===0||beatInBar===4){
+     makeVoice(bar.root,now,beat*1.65,.10,'sine');
+     makeVoice(bar.root*2,now,beat*.75,.035,'triangle');
+   }
+
+   // Soft, sustained chord tones at the start of each four-beat phrase.
+   if(beatInBar===0){
+     bar.chord.forEach((f,i)=>makeVoice(f,now,beat*3.7,.025,'sine',i===1?4:-3));
+   }
+
+   // Bright, rounded melody with a light octave shimmer.
+   const note=bar.melody[beatInBar];
+   makeVoice(note,now,beat*.72,.075,'triangle');
+   if(beatInBar===2||beatInBar===6)makeVoice(note*2,now,beat*.42,.018,'sine');
+
+   // A subtle off-beat pluck gives the loop a little forward movement.
+   if(beatInBar===1||beatInBar===5)makeVoice(bar.chord[1]*2,now,beat*.32,.016,'triangle');
+   step++;
+ };
+ playStep();
+ musicTimer=setInterval(playStep,stepMs);
+}
+function stopMusic(){
+ if(musicTimer){clearInterval(musicTimer);musicTimer=null}
+ if(musicGain){try{musicGain.gain.exponentialRampToValueAtTime(.0001,audio.currentTime+.18)}catch(e){};setTimeout(()=>{try{musicGain.disconnect()}catch(e){};musicGain=null},220)}
+}
+function toggleMusic(){
+ musicOn=!musicOn;
+ $('musicBtn').textContent=musicOn?'♫ MUSIC ON':'♫ MUSIC OFF';
+ if(musicOn){if(audio){startMusic()}}else stopMusic();
+}
+
+function tone(f,d=.1,g=.06,type='sine',slide=0){if(!audio)return;const n=audio.currentTime,o=audio.createOscillator(),a=audio.createGain();o.type=type;o.frequency.setValueAtTime(f,n);if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(20,f+slide),n+d);a.gain.setValueAtTime(.0001,n);a.gain.exponentialRampToValueAtTime(g,n+.01);a.gain.exponentialRampToValueAtTime(.0001,n+d);o.connect(a).connect(master);o.start(n);o.stop(n+d+.02)}
+function clickSound(){tone(560,.07,.05,'square');setTimeout(()=>tone(820,.08,.045,'sine'),60)}
+function goodSound(){[620,790,1000].forEach((f,i)=>setTimeout(()=>tone(f,.11,.065,'sine',60),i*70))}
+function badSound(){tone(190,.16,.07,'sawtooth',-50);setTimeout(()=>tone(125,.18,.05,'square',-30),130)}
+function finishSound(){[620,760,900,1060,1250,1480].forEach((f,i)=>setTimeout(()=>tone(f,.13,.065,'sine',80),i*70))}
+
+function update(){
+ $('score').textContent=String(Math.max(0,score)).padStart(5,'0');
+ $('xp').textContent=String(Math.max(0,score)).padStart(5,'0');
+ $('qnum').textContent=`${Math.min(index+1,questions.length)} / ${questions.length}`;
+ $('streak').textContent=streak;
+ $('progress').style.width=((index+(answered?1:0))/questions.length*100)+'%';
+}
+function renderTimeline(){
+ const eras=[...document.querySelectorAll('.era')];
+ eras.forEach((e,i)=>{e.classList.remove('active','done');if(i<Math.min(6,Math.floor(index*6/questions.length)))e.classList.add('done');if(i===Math.min(5,Math.floor(index*6/questions.length)))e.classList.add('active')});
+}
+function render(){
+ const q=questions[index];answered=false;
+ $('era').textContent=q.era;$('question').textContent=q.q;$('hint').textContent='Take your time. Choose the answer you think is right.';
+ $('feedback').className='feedback';$('status').textContent='HERITAGE ARCHIVE // ACTIVE';
+ const box=$('choices');box.innerHTML='';
+ q.a.forEach((text,i)=>{const b=document.createElement('button');b.type='button';b.className='choice';b.innerHTML=`<span class="letter">${String.fromCharCode(65+i)}</span>${text}`;b.onclick=()=>answer(i,b);box.appendChild(b)});
+ renderTimeline();update();
+}
+function answer(choice,button){
+ if(answered)return;answered=true;const q=questions[index];const correct=choice===q.correct;
+ [...$('choices').children].forEach(b=>b.disabled=true);
+ [...$('choices').children][q.correct].classList.add('correct');
+ if(!correct)button.classList.add('wrong');
+ if(correct){q._answeredCorrect=true;streak++;maxStreak=Math.max(maxStreak,streak);score+=100;goodSound();$('feedback').className='feedback show good';$('feedbackTitle').textContent='✓ GREAT FLYING! +100 XP';}
+ else{q._answeredCorrect=false;streak=0;badSound();$('feedback').className='feedback show bad';$('feedbackTitle').textContent='✦ NICE TRY, YOUNG AVIATOR!';}
+ $('feedbackText').textContent=q.fact;
+ $('hint').textContent=correct?'Excellent work! Read the fun fact, then continue when you are ready.':'The correct answer is highlighted. Read the fun fact and discover something new!';
+ const next=document.createElement('button');next.className='start';next.style.marginTop='12px';next.textContent=index===questions.length-1?'VIEW MISSION REPORT':'NEXT QUESTION';next.onclick=()=>{index++;if(index<questions.length){render()}else finish()};
+ $('continueWrap').innerHTML='';$('continueWrap').appendChild(next);
+ update();
+}
+function finish(){
+ finishSound();$('status').textContent='HERITAGE ARCHIVE // COMPLETE';$('overlay').style.display='flex';
+ const correctCount=questions.reduce((n,q)=>n+(q._answeredCorrect?1:0),0);
+ $('box').innerHTML=`<div class="kicker">SINGAPORE AIR FORCE MUSEUM · MISSION REPORT</div><h2>HERITAGE COMPLETE</h2><div class="report"><div>FINAL SCORE: <strong class="good">${String(Math.max(0,score)).padStart(5,'0')}</strong></div><div>QUESTIONS COMPLETED: <strong>${questions.length}</strong></div><div>CORRECT ANSWERS: <strong>${correctCount} / ${questions.length}</strong></div><div>BEST STREAK: <strong>${maxStreak}</strong></div><p style="color:#8caab2">Well done, Young Aviator! You have discovered some of the people, aircraft and milestones that shaped Singapore’s Air Force.</p></div><button class="start" id="restart">PLAY AGAIN</button>`;$('restart').onclick=()=>location.reload()
+}
+$('start').onclick=()=>{audioStart();startMusic();$('overlay').style.display='none';index=0;score=0;streak=0;maxStreak=0;questions.forEach(q=>delete q._answeredCorrect);render()};
+$('musicBtn').onclick=toggleMusic;
+// Track correct answers for the final report.
+const originalAnswer=answer;
+window.__rsaftest=questions;
+})();
+</script>
+</body>
+</html>
